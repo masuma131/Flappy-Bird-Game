@@ -58,12 +58,11 @@ int main(int argc, char* args[]) {
     IMG_Init(IMG_INIT_PNG);
     TTF_Init();
 
+
     SDL_Window* window = SDL_CreateWindow("Flappy Bird", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
     SDL_Texture* bgTexture = IMG_LoadTexture(renderer, "sprites/background.png");
     SDL_Texture* birdTexture = IMG_LoadTexture(renderer, "sprites/bird.png");
-
     SDL_Texture* upperPipeTexture = IMG_LoadTexture(renderer, "sprites/upper_pipe.png");
     SDL_Texture* lowerPipeTexture = IMG_LoadTexture(renderer, "sprites/lower_pipe.png");
 
@@ -76,18 +75,28 @@ int main(int argc, char* args[]) {
     std::list<Pipe> pipes;
     int score = 0;
 
-    Uint32 lastTime = 0, currentTime;
+    // Create an initial pipe to show on screen immediately
+    //Pipe initialPipe;
+    //initialPipe.x = WINDOW_WIDTH / 2; // Adjust X position as necessary
+    //initialPipe.gapY = rand() % (WINDOW_HEIGHT - 2 * Pipe::gapHeight) + Pipe::gapHeight;
+    //pipes.push_back(initialPipe);
+
+    Uint32 lastTime = SDL_GetTicks() - 1500; // Adjust the time so the first pipe spawns quickly
+    Uint32 currentTime;
     srand(static_cast<unsigned int>(time(nullptr)));
+
 
     while (running) {
         currentTime = SDL_GetTicks();
-        if (currentTime > lastTime + 1500) {
+        if (currentTime - lastTime >= 1500) { // Pipe spawn interval (in milliseconds)
             Pipe newPipe;
             newPipe.x = WINDOW_WIDTH;
             newPipe.gapY = rand() % (WINDOW_HEIGHT - 2 * Pipe::gapHeight) + Pipe::gapHeight;
             pipes.push_back(newPipe);
             lastTime = currentTime;
         }
+
+
 
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -134,12 +143,9 @@ int main(int argc, char* args[]) {
         SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
         SDL_Rect textRect = { 10, 10, textSurface->w, textSurface->h };
         SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-
         SDL_FreeSurface(textSurface);
         SDL_DestroyTexture(textTexture);
-
         SDL_RenderPresent(renderer);
-
         SDL_Delay(16);
     }
 
@@ -157,3 +163,4 @@ int main(int argc, char* args[]) {
 
     return 0;
 }
+
