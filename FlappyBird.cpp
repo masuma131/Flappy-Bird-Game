@@ -24,10 +24,10 @@ struct Bird {
 };
 
 void initBird(Bird& bird) {
-    bird.x = 50;
-    bird.y = WINDOW_HEIGHT / 2;
-    bird.width = 40;
-    bird.height = 40;
+    bird.width = 40; // Ensure this is set before calculating the position
+    bird.height = 50; // Ensure this is set before calculating the position
+    bird.x = (WINDOW_WIDTH / 2) - (bird.width / 2); // Center the bird horizontally
+    bird.y = (WINDOW_HEIGHT / 2) - (bird.height / 2); // Center the bird vertically
     bird.velocity = 0;
     bird.gravity = 0.25f;
 }
@@ -61,10 +61,10 @@ int main(int argc, char* args[]) {
 
     SDL_Window* window = SDL_CreateWindow("Flappy Bird", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Texture* bgTexture = IMG_LoadTexture(renderer, "sprites/background.png");
-    SDL_Texture* birdTexture = IMG_LoadTexture(renderer, "sprites/bird.png");
-    SDL_Texture* upperPipeTexture = IMG_LoadTexture(renderer, "sprites/upper_pipe.png");
-    SDL_Texture* lowerPipeTexture = IMG_LoadTexture(renderer, "sprites/lower_pipe.png");
+    SDL_Texture* bgTexture = IMG_LoadTexture(renderer, "sprites/background_2.png");
+    SDL_Texture* birdTexture = IMG_LoadTexture(renderer, "sprites/bird_2.png");
+    SDL_Texture* upperPipeTexture = IMG_LoadTexture(renderer, "sprites/upper_pipe_2.png");
+    SDL_Texture* lowerPipeTexture = IMG_LoadTexture(renderer, "sprites/lower_pipe_2.png");
 
     TTF_Font* font = TTF_OpenFont("font.ttf", 24);
 
@@ -88,7 +88,7 @@ int main(int argc, char* args[]) {
 
     while (running) {
         currentTime = SDL_GetTicks();
-        if (currentTime - lastTime >= 1500) { // Pipe spawn interval (in milliseconds)
+        if (currentTime - lastTime >= 1400) { // Pipe spawn interval (in milliseconds)
             Pipe newPipe;
             newPipe.x = WINDOW_WIDTH;
             newPipe.gapY = rand() % (WINDOW_HEIGHT - 2 * Pipe::gapHeight) + Pipe::gapHeight;
