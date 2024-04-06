@@ -2,11 +2,13 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <list>
+#include <fstream>
 #include <iostream>
 #include <ctime>
 #include <string>
 #include <SDL_mixer.h>
 
+using namespace std;
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 600
@@ -35,6 +37,7 @@ void initBird(Bird& bird) {
     bird.velocity = 0;
     bird.gravity = 0.25f;
 }
+
 
 static void renderScoreAndLives(SDL_Renderer* renderer, TTF_Font* font, int score, int life) {
     SDL_Color textColor = { 255, 255, 255 };
@@ -70,6 +73,36 @@ static bool checkCollision(const Bird& bird, const Pipe& pipe) {
     }
     return false;
 }
+
+// Anne
+static void highScoreCheck(SDL_Renderer* renderer, TTF_Font* font, int score) {
+    int highScore = 0;
+
+    ifstream highScoreFile("highScore.txt");
+    if (highScoreFile.is_open()) {
+        highScoreFile >> highScore;
+        highScoreFile.close();
+    };
+
+    if (score > highScore) {
+        highScore = score;
+        ofstream outFile("highScore.txt");
+        outFile << highScore;
+        outFile.close();
+    };
+
+    SDL_Color textColor = { 255, 255, 255 };
+    std::string highScoreText = "High Score: " + std::to_string(highScore);
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, highScoreText.c_str(), textColor);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_Rect textRect = { 100, 100, textSurface->w, textSurface->h };
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+}
+
+
+
 
 int main(int argc, char* args[]) {
     // Initialize SDL, SDL_image, SDL_ttf, SDL_mixer
@@ -156,7 +189,6 @@ int main(int argc, char* args[]) {
         if (invincibilityTimer > 0) {
             invincibilityTimer--;
         }
-
         if (birdAlive) {
             bird.velocity += bird.gravity;
             bird.y += static_cast<int>(bird.velocity);
@@ -180,6 +212,7 @@ int main(int argc, char* args[]) {
         SDL_RenderCopy(renderer, birdTexture, NULL, &birdRect);
         renderScoreAndLives(renderer, font, score, life);
         if (!birdAlive) {
+            highScoreCheck(renderer, font, score);
             SDL_RenderCopy(renderer, gameOverTexture, NULL, NULL);
         }
         SDL_RenderPresent(renderer);
@@ -206,6 +239,8 @@ int main(int argc, char* args[]) {
                 if (life == 0) {
                     birdAlive = false;
                     Mix_PlayChannel(-1, endSound, 0);
+                    
+
                 }
                 else {
                     initBird(bird);
