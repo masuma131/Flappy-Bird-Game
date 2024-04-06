@@ -9,6 +9,13 @@
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 600
 
+enum GameState
+{
+    START_SCREEN,
+    IN_GAME,
+    GAME_OVER
+};
+
 struct Pipe {
     int x;
     int gapY;
@@ -42,6 +49,57 @@ void renderPipes(SDL_Renderer* renderer, SDL_Texture* upperPipeTexture, SDL_Text
         SDL_Rect bottomRect = { pipe.x, pipe.gapY + Pipe::gapHeight / 2, Pipe::pipeWidth, WINDOW_HEIGHT - (pipe.gapY + Pipe::gapHeight / 2) };
         SDL_RenderCopy(renderer, lowerPipeTexture, NULL, &bottomRect);
     }
+}
+
+void renderStartScreen(SDL_Renderer* renderer, TTF_Font* font)
+{
+    SDL_Color textColor = { 255, 255, 255 };
+    const char* message = "Press SPACE to start";
+
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, message, textColor);
+    if (textSurface == NULL)
+    {
+        std::cerr << "Unable to create text surface! SDL_ttf Error: " << TTF_GetError() << std::endl;
+    }
+    else
+    {
+        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        if (textTexture == NULL)
+        {
+            std::cerr << "Unable to create texture from rendered text! SDL Error: " << SDL_GetError() << std::endl;
+        }
+        else
+        {
+            int textWidth = textSurface->w;
+            int textHeight = textSurface->h;
+
+            SDL_Rect textRect = { (WINDOW_WIDTH - textWidth) / 2, (WINDOW_HEIGHT - textHeight) / 2, textWidth, textHeight };
+
+            SDL_RenderCopy(renderer, textTexture, NULL, &textRect); // Render the text to the screen
+
+            SDL_DestroyTexture(textTexture); // Clean up
+        }
+
+        // Free the surface
+        SDL_FreeSurface(textSurface);
+    }
+}
+
+void renderGameOverScreen(SDL_Renderer* renderer, TTF_Font* font, int score)
+{
+    SDL_Color textColor = { 255, 255, 255 };
+    std::string gameOverText = "Game Over! Score: " + std::to_string(score) + ". Press SPACE to exit.";
+
+    SDL_Surface* surface = TTF_RenderText_Solid(font, gameOverText.c_str(), textColor);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    int textWidth = surface->w;
+    int textHeight = surface->h;
+    SDL_Rect renderQuad = { (WINDOW_WIDTH - textWidth) / 2, (WINDOW_HEIGHT - textHeight) / 2, textWidth, textHeight };
+
+    SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(surface);
 }
 
 bool checkCollision(const Bird& bird, const Pipe& pipe) {
@@ -81,6 +139,8 @@ int main(int argc, char* args[]) {
     //initialPipe.gapY = rand() % (WINDOW_HEIGHT - 2 * Pipe::gapHeight) + Pipe::gapHeight;
     //pipes.push_back(initialPipe);
 
+    GameState gameState = START_SCREEN; // keep state of the screen we are on
+
     Uint32 lastTime = SDL_GetTicks() - 1500; // Adjust the time so the first pipe spawns quickly
     Uint32 currentTime;
     srand(static_cast<unsigned int>(time(nullptr)));
@@ -96,22 +156,65 @@ int main(int argc, char* args[]) {
             lastTime = currentTime;
         }
 
-
-
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }
-            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
+
+            // starting of game
+            if (gameState == START_SCREEN && event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
+                bird.velocity = -5;
+                gameState = IN_GAME;
+            }
+
+            // continues game
+            if (gameState == IN_GAME && event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
+            {
                 bird.velocity = -5;
             }
+        }
+
+        // loads in start screen
+        if (gameState == START_SCREEN) {
+            SDL_RenderClear(renderer); // Clear screen
+            renderStartScreen(renderer, font);
+            SDL_RenderPresent(renderer);
+            SDL_Delay(100);
+            continue;
+        }
+
+        // loads in game over screen
+        if (gameState == GAME_OVER)
+        {
+            SDL_RenderClear(renderer);
+            renderGameOverScreen(renderer, font, score);
+            SDL_RenderPresent(renderer);
+
+            bool waitingForInput = true;
+            while (waitingForInput)
+            {
+                while (SDL_PollEvent(&event))
+                {
+                    if (event.type == SDL_QUIT)
+                    {
+                        waitingForInput = false;
+                        running = false; 
+                    }
+                    else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
+                    {
+                        waitingForInput = false;
+                        running = false; // can remove if we want to restart the game
+                    }
+                }
+            }
+            continue;
         }
 
         bird.velocity += bird.gravity;
         bird.y += static_cast<int>(bird.velocity);
 
         if (bird.y < 0 || bird.y + bird.height > WINDOW_HEIGHT) {
-            running = false;
+            gameState = GAME_OVER;
         }
 
         SDL_RenderClear(renderer);
@@ -131,7 +234,7 @@ int main(int argc, char* args[]) {
             }
             else {
                 if (checkCollision(bird, *it)) {
-                    running = false;
+                    gameState = GAME_OVER;
                 }
                 ++it;
             }
