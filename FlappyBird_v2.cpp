@@ -7,6 +7,8 @@
 #include <ctime>
 #include <string>
 #include <SDL_mixer.h>
+#include <vector>
+
 
 using namespace std;
 
@@ -18,7 +20,7 @@ bool birdAlive = true;
 struct Pipe {
     int x;
     int gapY;
-    static const int gapHeight = 200;
+    static const int gapHeight = 00;
     static const int pipeWidth = 80;
 };
 
@@ -38,6 +40,56 @@ void initBird(Bird& bird) {
     bird.gravity = 0.25f;
 }
 
+struct PowerUp {
+    int x, y;
+    int width, height;
+    bool active;
+    static const int duration = 100; // Duration of power-up effect in milliseconds
+};
+
+
+static void initPowerUp(PowerUp& powerUp) {
+    powerUp.x = WINDOW_WIDTH + rand() % 1000; // Randomize position off-screen
+    powerUp.y = rand() % (WINDOW_HEIGHT - 100) + 50; // Randomize vertical position
+    powerUp.width = 40;
+    powerUp.height = 40;
+    powerUp.active = true;
+}
+
+// Function to render power-ups
+void renderPowerUps(SDL_Renderer* renderer, SDL_Texture* featherTexture, const vector<PowerUp>& powerUps) {
+    for (const auto& powerUp : powerUps) {
+        if (powerUp.active) {
+            SDL_Rect powerUpRect = { powerUp.x, powerUp.y, powerUp.width, powerUp.height };
+            SDL_RenderCopy(renderer, featherTexture, NULL, &powerUpRect);
+        }
+    }
+}
+
+// Function to handle collision between bird and power-up
+void handlePowerUpCollision(Bird& bird, vector<PowerUp>& powerUps, int&a, Mix_Chunk* scoreSound) {
+    for (auto& powerUp : powerUps) {
+        if (powerUp.active && bird.x < powerUp.x + powerUp.width && bird.x + bird.width > powerUp.x &&
+            bird.y < powerUp.y + powerUp.height && bird.y + bird.height > powerUp.y) {
+            // If bird collides with active power-up
+            Mix_PlayChannel(-1, scoreSound, 0);
+            a += 2; 
+            bird.gravity /= 1.2; // Reduce gravity to slow down descent
+            powerUp.active = false; // Deactivate power-up
+            SDL_Delay(PowerUp::duration); // Delay to indicate power-up duration
+            bird.gravity *= 1.25; // Restore original gravity
+        }
+    }
+}
+
+// Function to update power-up position
+void updatePowerUps(vector<PowerUp>& powerUps) {
+    for (auto& powerUp : powerUps) {
+        if (powerUp.active) {
+            powerUp.x -= 2; // Move power-up towards the left
+        }
+    }
+}
 
 static void renderScoreAndLives(SDL_Renderer* renderer, TTF_Font* font, int score, int life) {
     SDL_Color textColor = { 255, 255, 255 };
@@ -74,7 +126,7 @@ static bool checkCollision(const Bird& bird, const Pipe& pipe) {
     return false;
 }
 
-// Anne
+
 static void highScoreCheck(SDL_Renderer* renderer, TTF_Font* font, int score) {
     int highScore = 0;
 
@@ -141,6 +193,8 @@ int main(int argc, char* args[]) {
     SDL_Texture* upperPipeTexture = IMG_LoadTexture(renderer, "sprites/upper_pipe.png");
     SDL_Texture* lowerPipeTexture = IMG_LoadTexture(renderer, "sprites/lower_pipe.png");
     SDL_Texture* gameOverTexture = IMG_LoadTexture(renderer, "sprites/game_over.png");
+    SDL_Texture* coinTexture = IMG_LoadTexture(renderer, "sprites/coin.png");
+
 
     // Load font
     TTF_Font* font = TTF_OpenFont("font.ttf", 24);
@@ -159,9 +213,10 @@ int main(int argc, char* args[]) {
     SDL_Event event;
     Bird bird;
     std::list<Pipe> pipes;
+    vector<PowerUp> powerUps;
     int score = 0;
     int life = 4;
-    Uint32 lastTime = 0, currentTime;
+    Uint32 lastTime = 0, lastPipeTime = 0, currentTime;
     int invincibilityTimer = 0;
 
     // Game loop
@@ -178,17 +233,17 @@ int main(int argc, char* args[]) {
 
         // Game logic
         currentTime = SDL_GetTicks();
-        if (birdAlive && currentTime > lastTime + 1500) {
-            Pipe newPipe;
-            newPipe.x = WINDOW_WIDTH;
-            newPipe.gapY = rand() % (WINDOW_HEIGHT - 2 * Pipe::gapHeight) + Pipe::gapHeight;
-            pipes.push_back(newPipe);
+        if (birdAlive && currentTime > lastTime + 2000) {
+            PowerUp newPowerUp;
+            initPowerUp(newPowerUp);
+            powerUps.push_back(newPowerUp);
             lastTime = currentTime;
         }
 
-        if (invincibilityTimer > 0) {
+        if (birdAlive && invincibilityTimer > 0) {
             invincibilityTimer--;
         }
+
         if (birdAlive) {
             bird.velocity += bird.gravity;
             bird.y += static_cast<int>(bird.velocity);
@@ -204,10 +259,20 @@ int main(int argc, char* args[]) {
             }
         }
 
+        // Generate pipes
+        if (birdAlive && currentTime > lastPipeTime + 1500) {
+            Pipe newPipe;
+            newPipe.x = WINDOW_WIDTH;
+            newPipe.gapY = rand() % (WINDOW_HEIGHT - 2 * Pipe::gapHeight) + Pipe::gapHeight;
+            pipes.push_back(newPipe);
+            lastPipeTime = currentTime;
+        }
+
         // Rendering
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, bgTexture, NULL, NULL);
         renderPipes(renderer, upperPipeTexture, lowerPipeTexture, pipes);
+        renderPowerUps(renderer, coinTexture, powerUps);
         SDL_Rect birdRect = { bird.x, bird.y, bird.width, bird.height };
         SDL_RenderCopy(renderer, birdTexture, NULL, &birdRect);
         renderScoreAndLives(renderer, font, score, life);
@@ -239,8 +304,6 @@ int main(int argc, char* args[]) {
                 if (life == 0) {
                     birdAlive = false;
                     Mix_PlayChannel(-1, endSound, 0);
-                    
-
                 }
                 else {
                     initBird(bird);
@@ -252,6 +315,12 @@ int main(int argc, char* args[]) {
                 ++it;
             }
         }
+
+        // Update power-ups
+        updatePowerUps(powerUps);
+
+        // Handle collision with power-ups
+        handlePowerUpCollision(bird, powerUps, score, scoreSound);
 
         // Delay
         SDL_Delay(20);
