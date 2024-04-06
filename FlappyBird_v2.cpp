@@ -64,23 +64,23 @@ static void initPowerUp(PowerUp& powerUp) {
 }
 
 // Function to render power-ups
-void renderPowerUps(SDL_Renderer* renderer, SDL_Texture* featherTexture, const vector<PowerUp>& powerUps) {
+void renderPowerUps(SDL_Renderer* renderer, SDL_Texture* coinTexture, const vector<PowerUp>& powerUps) {
     for (const auto& powerUp : powerUps) {
         if (powerUp.active) {
             SDL_Rect powerUpRect = { powerUp.x, powerUp.y, powerUp.width, powerUp.height };
-            SDL_RenderCopy(renderer, featherTexture, NULL, &powerUpRect);
+            SDL_RenderCopy(renderer, coinTexture, NULL, &powerUpRect);
         }
     }
 }
 
 // Function to handle collision between bird and power-up
-void handlePowerUpCollision(Bird& bird, vector<PowerUp>& powerUps, int&a, Mix_Chunk* scoreSound) {
+void handlePowerUpCollision(Bird& bird, vector<PowerUp>& powerUps, int& a, Mix_Chunk* scoreSound) {
     for (auto& powerUp : powerUps) {
         if (powerUp.active && bird.x < powerUp.x + powerUp.width && bird.x + bird.width > powerUp.x &&
             bird.y < powerUp.y + powerUp.height && bird.y + bird.height > powerUp.y) {
             // If bird collides with active power-up
             Mix_PlayChannel(-1, scoreSound, 0);
-            a += 2; 
+            a += 2;
             bird.gravity /= 1.2; // Reduce gravity to slow down descent
             powerUp.active = false; // Deactivate power-up
             SDL_Delay(PowerUp::duration); // Delay to indicate power-up duration
@@ -149,7 +149,7 @@ void renderStartScreen(SDL_Renderer* renderer, TTF_Font* font)
 
 void renderGameOverScreen(SDL_Renderer* renderer, TTF_Font* font, int score, int highScore)
 {
-    SDL_RenderCopy(renderer, bgTexture, NULL, NULL); 
+    SDL_RenderCopy(renderer, bgTexture, NULL, NULL);
 
     // Draw semi-transparent overlay
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -277,7 +277,7 @@ int main(int argc, char* args[]) {
 
     // Load textures // TODO: CHANGE FILE PATH TO NEW GRAPHICS
     bgTexture = IMG_LoadTexture(renderer, "sprites/background.png");
-    SDL_Texture* birdTexture = IMG_LoadTexture(renderer, "sprites/bird_2.png");
+    SDL_Texture* birdTexture = IMG_LoadTexture(renderer, "sprites/bird.png");
     SDL_Texture* upperPipeTexture = IMG_LoadTexture(renderer, "sprites/upper_pipe_2.png");
     SDL_Texture* lowerPipeTexture = IMG_LoadTexture(renderer, "sprites/lower_pipe_2.png");
     SDL_Texture* gameOverTexture = IMG_LoadTexture(renderer, "sprites/game_over.png");
@@ -316,7 +316,7 @@ int main(int argc, char* args[]) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }
-            
+
             // starting of game
             if (gameState == START_SCREEN && event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
             {
