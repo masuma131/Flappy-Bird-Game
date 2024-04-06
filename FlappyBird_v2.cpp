@@ -27,7 +27,7 @@ enum GameState
 struct Pipe {
     int x;
     int gapY;
-    static const int gapHeight = 00;
+    static const int gapHeight = 200;
     static const int pipeWidth = 80;
 };
 
@@ -424,6 +424,7 @@ int main(int argc, char* args[]) {
 
         // Game over
         if (!birdAlive && life == 0) {
+            highScoreCheck(renderer, font, score);
             gameState = GAME_OVER;
         }
 
