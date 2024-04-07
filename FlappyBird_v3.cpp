@@ -89,13 +89,13 @@ void renderPowerUps(SDL_Renderer* renderer, SDL_Texture* featherTexture, const v
 }
 
 // Function to handle collision between bird and power-up
-void handlePowerUpCollision(Bird& bird, vector<PowerUp>& powerUps, int& a, Mix_Chunk* scoreSound) {
+void handlePowerUpCollision(Bird& bird, vector<PowerUp>& powerUps, int& score, Mix_Chunk* scoreSound) {
     for (auto& powerUp : powerUps) {
         if (powerUp.active && bird.x < powerUp.x + powerUp.width && bird.x + bird.width > powerUp.x &&
             bird.y < powerUp.y + powerUp.height && bird.y + bird.height > powerUp.y) {
             // If bird collides with active power-up
             Mix_PlayChannel(-1, scoreSound, 0);
-            a += 2;
+            score += 2; // Update the score by 2
             bird.gravity /= 1.2; // Reduce gravity to slow down descent
             powerUp.active = false; // Deactivate power-up
             SDL_Delay(PowerUp::duration); // Delay to indicate power-up duration
