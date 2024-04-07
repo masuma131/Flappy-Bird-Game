@@ -57,7 +57,7 @@ struct PowerUp {
 };
 
 
-
+// Function to spawn a power-up (coin) between pipes
 void spawnPowerUp(vector<PowerUp>& powerUps, const std::list<Pipe>& pipes) {
     if (pipes.size() < 2) return; // Ensure there are enough pipes to find a gap
 
@@ -124,6 +124,7 @@ static void renderScoreAndLives(SDL_Renderer* renderer, TTF_Font* font, int scor
     SDL_DestroyTexture(textTexture);
 }
 
+// Function to render pipes on the screen
 static void renderPipes(SDL_Renderer* renderer, SDL_Texture* upperPipeTexture, SDL_Texture* lowerPipeTexture, std::list<Pipe>& pipes) {
     for (Pipe& pipe : pipes) {
         // Upper pipe
@@ -206,7 +207,7 @@ void renderGameOverScreen(SDL_Renderer* renderer, TTF_Font* font, int score, int
         SDL_FreeSurface(surface);
     }
 }
-
+//Function for checking collision
 static bool checkCollision(const Bird& bird, const Pipe& pipe) {
     // Check for collision with upper pipe
     if (bird.x + bird.width > pipe.x && bird.x < pipe.x + Pipe::pipeWidth && bird.y < pipe.gapY - Pipe::gapHeight / 2) {
