@@ -56,32 +56,9 @@ struct PowerUp {
     static const int duration = 00; // Duration of power-up effect in milliseconds
 };
 
-static void initPowerUp(PowerUp& powerUp, const std::list<Pipe>& pipes) {
-    // Ensure there's a minimum spacing between power-ups
-    const int minSpacing = 300; // Minimum spacing between power-ups
 
-    // Check if we can spawn a new power-up based on the last spawned position
-    if (!pipes.empty() && (lastPowerUpX < 0 || WINDOW_WIDTH - lastPowerUpX > minSpacing)) {
-        std::vector<Pipe> pipesVector(pipes.begin(), pipes.end());
-        int randomPipeIndex = rand() % pipesVector.size();
-        const Pipe& selectedPipe = pipesVector[randomPipeIndex];
 
-        powerUp.x = selectedPipe.x + Pipe::pipeWidth / 2;
-        powerUp.y = selectedPipe.gapY;
-
-        const int safeMargin = 20;
-        int gapHalfHeight = Pipe::gapHeight / 2 - powerUp.height / 2 - safeMargin;
-        powerUp.y += rand() % (gapHalfHeight * 2) - gapHalfHeight;
-
-        powerUp.width = 40;
-        powerUp.height = 40;
-        powerUp.active = true;
-
-        lastPowerUpX = powerUp.x; // Update the last power-up's position
-    }
-}
-
-void trySpawnPowerUp(vector<PowerUp>& powerUps, const std::list<Pipe>& pipes) {
+void spawnPowerUp(vector<PowerUp>& powerUps, const std::list<Pipe>& pipes) {
     if (pipes.size() < 2) return; // Ensure there are enough pipes to find a gap
 
     const int minSpacingFromPipe = 150; // Minimum horizontal spacing from the next pipe
@@ -419,7 +396,7 @@ int main(int argc, char* args[]) {
         const Uint32 powerUpSpawnInterval = 5000; // Adjust as needed, for example, 5000ms = 5 seconds
 
         if (currentTime - lastPowerUpSpawnTick > powerUpSpawnInterval) {
-            trySpawnPowerUp(powerUps, pipes);
+            spawnPowerUp(powerUps, pipes);
             lastPowerUpSpawnTick = currentTime; // Reset the timer
         }
 
