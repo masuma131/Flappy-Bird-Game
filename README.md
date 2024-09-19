@@ -61,11 +61,11 @@ Follow these steps to set up and run the game on your computer:
 - Chloe Quijano
 
 ## Screenshots
-# Start Screen
+### Start Screen
 ![Start Screen](images/start_screen.png)
-# Gameplay Screen
+### Gameplay Screen
 ![Gameplay Screen](images/gameplay_screen.png)
-# End Screen
+### End Screen
 ![End Screen](images/end_screen.png)
 
 ## References
