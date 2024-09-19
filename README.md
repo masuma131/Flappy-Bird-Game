@@ -63,8 +63,6 @@ Follow these steps to set up and run the game on your computer:
 ## Screenshots
 
 
-
-
 ## References
 
 - **Repository of Code:** [Flappy Bird Game](https://github.com/masuma131/Flappy-Bird-Game)
