@@ -62,7 +62,7 @@ Follow these steps to set up and run the game on your computer:
 
 ## Screenshots
 
-![Screenshot - Start](Screenshot - Start.png)
+![Start Screen](start_screen.png)
 ## References
 
 - **Repository of Code:** [Flappy Bird Game](https://github.com/masuma131/Flappy-Bird-Game)
