@@ -5,6 +5,7 @@ Flappy Bird is a popular game where the player controls a bird, navigating it th
 ## About the Project
 
 Flappy Bird is a popular game where the player controls a bird, navigating it through gaps between green pipes without hitting them. This project recreates the classic game for PC, with additional features such as power-ups and custom graphics. We've implemented several enhancements, including coin power-ups that provide extra points and a lives system where the player starts with 4 lives, adding an extra layer of challenge and strategy to the gameplay.
+
 ![Gameplay Screen](images/gameplay_screen.png)
 
 ## Technologies Used
